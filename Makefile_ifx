@@ -1,0 +1,20 @@
+executables = xmat_ifx.exe
+FC     = ifx
+FFLAGS = /nologo /Zi /Od /check:all /traceback /fpe-all:0 /warn:all /assume:protect_parens /implicitnone /stand:f23
+obj    = kind.obj mat.obj xmat.obj
+
+all: $(executables)
+
+# Compile .f90 to .obj
+%.obj: %.f90
+	$(FC) $(FFLAGS) -c $<
+
+xmat_ifx.exe: kind.obj mat.obj xmat.obj
+	$(FC) -o xmat_ifx.exe kind.obj mat.obj xmat.obj $(FFLAGS)
+
+run: $(executables)
+	./xmat_ifx.exe
+
+clean:
+	rm -f $(executables) $(obj)
+
