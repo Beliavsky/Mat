@@ -11,11 +11,11 @@ program demo
    call eval_print("c")
 
    ! Prompt user for input
-   print *, "Enter expressions below. Empty line to quit."
+   print *, "Enter expressions below. Type quit to exit."
    do
       write(*,"(a)", advance="no") ">> "
       read(*,"(A)") line
-      if (line == "") exit
+      if (adjustl(line) == "quit") exit
       call eval_print(line)
    end do
 end program demo
