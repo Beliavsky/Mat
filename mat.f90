@@ -12,7 +12,7 @@ type :: var_t
 end type var_t
 
 type(var_t) :: vars(max_vars)
-integer :: nvars = 0
+integer :: n_vars = 0
 
 contains
 
@@ -232,6 +232,7 @@ subroutine show_matrix(a, tag)
    do i = 1, m
       write(*, "(*(1x,f8.3))") a(i,:)
    end do
+   print*
 end subroutine show_matrix
 
 function get_var(name) result(v)
@@ -239,7 +240,7 @@ function get_var(name) result(v)
    real(kind=dp), allocatable :: v(:,:)
    integer :: k
 
-   do k = 1, nvars
+   do k = 1, n_vars
       if (vars(k)%name == name) then
          v = vars(k)%val
          return
@@ -253,17 +254,17 @@ subroutine set_var(name, val)
    real(kind=dp), intent(in) :: val(:,:)
    integer :: k
 
-   do k = 1, nvars
+   do k = 1, n_vars
       if (vars(k)%name == name) then
          call copy_matrix(val, vars(k)%val)
          return
       end if
    end do
 
-   if (nvars == max_vars) stop "symbol table full"
-   nvars = nvars + 1
-   vars(nvars)%name = name
-   call copy_matrix(val, vars(nvars)%val)
+   if (n_vars == max_vars) stop "symbol table full"
+   n_vars = n_vars + 1
+   vars(n_vars)%name = name
+   call copy_matrix(val, vars(n_vars)%val)
 end subroutine set_var
 
 subroutine copy_matrix(src, dst)
