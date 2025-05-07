@@ -5,6 +5,7 @@ private
 public :: eval_print
 
 integer, parameter :: max_vars = 100, len_name = 32
+logical, save :: eval_error = .false.
 
 type :: var_t
    character(len=len_name) :: name = ""
@@ -16,12 +17,18 @@ integer :: n_vars = 0
 
 contains
 
+subroutine report_error(msg)
+   character(len=*), intent(in) :: msg
+   print *, 'Error: ', trim(msg)
+   eval_error = .true.
+end subroutine report_error
+
 subroutine eval_print(line)
    character(len=*), intent(in) :: line
    character(len=:), allocatable :: l, lhs, rhs, tag
    real(kind=dp),  allocatable :: result(:,:)
    integer :: pos
-
+   eval_error = .false.        ! clear any previous error
    l = trim(adjustl(line))
    if (l == "") return
 
@@ -36,7 +43,7 @@ subroutine eval_print(line)
    else
       tag = lhs
    end if
-
+   if (eval_error) return       ! on any error, skip printing
    call show_matrix(result, tag)
 end subroutine eval_print
 
@@ -122,7 +129,11 @@ recursive function parse_factor(src, pos) result(mat)
    nt = len_trim(src)
    call skip_ws(src, pos)
 
-   if (pos > nt) stop "syntax error – operand expected"
+   if (pos > nt) then
+      call report_error("syntax error – operand expected")
+      allocate(mat(0,0))
+      return
+   end if
 
    if (src(pos:pos) == "(") then
       pos = pos + 1
@@ -137,7 +148,11 @@ recursive function parse_factor(src, pos) result(mat)
 
    if (pos <= nt) then
       if (src(pos:pos) == "(") then
-         if (trim(id) /= "runif") stop "only runif(m,n) is allowed"
+         if (trim(id) /= "runif") then
+            call report_error("only runif(m,n) is allowed")
+            allocate(mat(0,0))
+            return
+         end if
          pos = pos + 1
          m = int(get_number(src, pos))
          call expect_char(src, pos, ",")
@@ -180,7 +195,11 @@ function element_op(a, b, op) result(r)
    else if (b_scalar .and. .not. a_scalar) then
       m = size(a,1); n = size(a,2)
    else
-      if (any(shape(a) /= shape(b))) stop "shape mismatch"
+      if (any(shape(a) /= shape(b))) then
+         call report_error("shape mismatch")
+         allocate(r(0,0))
+         return
+      end if
       m = size(a,1); n = size(a,2)
    end if
    allocate(r(m,n))
@@ -246,7 +265,8 @@ function get_variable(name) result(v)
          return
       end if
    end do
-   stop "undefined variable: "//trim(name)
+   call report_error("undefined variable: " // trim(name))
+   allocate(v(0,0))
 end function get_variable
 
 subroutine set_variable(name, val)
@@ -261,7 +281,10 @@ subroutine set_variable(name, val)
       end if
    end do
 
-   if (n_vars == max_vars) stop "symbol table full"
+   if (n_vars == max_vars) then
+      call report_error("symbol table full")
+      return
+   end if
    n_vars = n_vars + 1
    vars(n_vars)%name = name
    call copy_matrix(val, vars(n_vars)%val)
@@ -337,7 +360,10 @@ subroutine expect_char(s, p, ch)
    character(len=1), intent(in) :: ch
 
    call skip_ws(s, p)
-   if (s(p:p) /= ch) stop 'syntax error – expected "'//ch//'"'
+   if (s(p:p) /= ch) then
+      call report_error('syntax error – expected "'//ch//'""')
+      return
+   end if
    p = p + 1
 end subroutine expect_char
 
