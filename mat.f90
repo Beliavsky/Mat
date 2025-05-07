@@ -224,13 +224,13 @@ end function element_op
 subroutine show_matrix(a, tag)
    real(kind=dp), intent(in) :: a(:,:)
    character(len=*), intent(in) :: tag
-   integer :: i, j, m, n
+   integer :: i, m, n
 
    m = size(a, 1)
    n = size(a, 2)
    write(*, '(a," = [",i0,"x",i0,"]")') trim(tag), m, n
    do i = 1, m
-      write(*, "(999(1x,g0.6))") (a(i,j), j = 1, n)
+      write(*, "(*(1x,f8.3))") a(i,:)
    end do
 end subroutine show_matrix
 
