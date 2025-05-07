@@ -29,7 +29,7 @@ subroutine eval_print(line)
    pos = 1
    result = parse_expr(rhs, pos)
 
-   if (lhs /= "") call set_var(trim(lhs), result)
+   if (lhs /= "") call set_variable(trim(lhs), result)
 
    if (lhs == "") then
       tag = "ans"
@@ -153,7 +153,7 @@ recursive function parse_factor(src, pos) result(mat)
       allocate(mat(1,1))
       mat = n
    else
-      mat = get_var(trim(id))
+      mat = get_variable(trim(id))
    end if
 end function parse_factor
 
@@ -235,7 +235,7 @@ subroutine show_matrix(a, tag)
    print*
 end subroutine show_matrix
 
-function get_var(name) result(v)
+function get_variable(name) result(v)
    character(len=*), intent(in) :: name
    real(kind=dp), allocatable :: v(:,:)
    integer :: k
@@ -247,9 +247,9 @@ function get_var(name) result(v)
       end if
    end do
    stop "undefined variable: "//trim(name)
-end function get_var
+end function get_variable
 
-subroutine set_var(name, val)
+subroutine set_variable(name, val)
    character(len=*), intent(in) :: name
    real(kind=dp), intent(in) :: val(:,:)
    integer :: k
@@ -265,7 +265,7 @@ subroutine set_var(name, val)
    n_vars = n_vars + 1
    vars(n_vars)%name = name
    call copy_matrix(val, vars(n_vars)%val)
-end subroutine set_var
+end subroutine set_variable
 
 subroutine copy_matrix(src, dst)
    real(kind=dp), intent(in) :: src(:,:)
