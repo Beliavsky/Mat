@@ -45,7 +45,7 @@ subroutine split_assignment(str, lhs, rhs)
    character(len=:), allocatable :: lhs, rhs
    integer :: p
 
-   p = index(str, '=')
+   p = index(str, "=")
    if (p == 0) then
       lhs = ""
       rhs = str
@@ -68,13 +68,13 @@ recursive function parse_expr(src, pos) result(mat)
       if (pos > len_trim(src)) exit
 
       c = iachar(src(pos:pos))
-      if (c == iachar('+') .or. c == iachar('-')) then
+      if (c == iachar("+") .or. c == iachar("-")) then
          pos = pos + 1
          rhs = parse_term(src, pos)
-         if (c == iachar('+')) then
-            mat = element_op(mat, rhs, '+')
+         if (c == iachar("+")) then
+            mat = element_op(mat, rhs, "+")
          else
-            mat = element_op(mat, rhs, '-')
+            mat = element_op(mat, rhs, "-")
          end if
       else
          exit
@@ -95,15 +95,15 @@ recursive function parse_term(src, pos) result(mat)
       if (pos > len_trim(src)) exit
 
       c = iachar(src(pos:pos))
-      if (any(c == [iachar('*'), iachar('/'), iachar('@')])) then
+      if (any(c == [iachar("*"), iachar("/"), iachar("@")])) then
          pos = pos + 1
          rhs = parse_factor(src, pos)
          select case (c)
-         case (iachar('*'))
-            mat = element_op(mat, rhs, '*')
-         case (iachar('/'))
-            mat = element_op(mat, rhs, '/')
-         case (iachar('@'))
+         case (iachar("*"))
+            mat = element_op(mat, rhs, "*")
+         case (iachar("/"))
+            mat = element_op(mat, rhs, "/")
+         case (iachar("@"))
             mat = matmul(mat, rhs)
          end select
       else
@@ -122,12 +122,12 @@ recursive function parse_factor(src, pos) result(mat)
    nt = len_trim(src)
    call skip_ws(src, pos)
 
-   if (pos > nt) stop 'syntax error – operand expected'
+   if (pos > nt) stop "syntax error – operand expected"
 
-   if (src(pos:pos) == '(') then
+   if (src(pos:pos) == "(") then
       pos = pos + 1
       mat = parse_expr(src, pos)
-      call expect_char(src, pos, ')')
+      call expect_char(src, pos, ")")
       return
    end if
 
@@ -136,13 +136,13 @@ recursive function parse_factor(src, pos) result(mat)
    nt = len_trim(src)
 
    if (pos <= nt) then
-      if (src(pos:pos) == '(') then
-         if (trim(id) /= 'runif') stop 'only runif(m,n) is allowed'
+      if (src(pos:pos) == "(") then
+         if (trim(id) /= "runif") stop "only runif(m,n) is allowed"
          pos = pos + 1
          m = int(get_number(src, pos))
-         call expect_char(src, pos, ',')
+         call expect_char(src, pos, ",")
          n = int(get_number(src, pos))
-         call expect_char(src, pos, ')')
+         call expect_char(src, pos, ")")
          mat = runif(m, n)
          return
       end if
@@ -180,13 +180,13 @@ function element_op(a, b, op) result(r)
    else if (b_scalar .and. .not. a_scalar) then
       m = size(a,1); n = size(a,2)
    else
-      if (any(shape(a) /= shape(b))) stop 'shape mismatch'
+      if (any(shape(a) /= shape(b))) stop "shape mismatch"
       m = size(a,1); n = size(a,2)
    end if
    allocate(r(m,n))
 
    select case (op)
-   case ('+')
+   case ("+")
       if (a_scalar) then
          sa = a(1,1); r = sa + b
       else if (b_scalar) then
@@ -194,7 +194,7 @@ function element_op(a, b, op) result(r)
       else
          r = a + b
       end if
-   case ('-')
+   case ("-")
       if (a_scalar) then
          sa = a(1,1); r = sa - b
       else if (b_scalar) then
@@ -202,7 +202,7 @@ function element_op(a, b, op) result(r)
       else
          r = a - b
       end if
-   case ('*')
+   case ("*")
       if (a_scalar) then
          sa = a(1,1); r = sa * b
       else if (b_scalar) then
@@ -210,7 +210,7 @@ function element_op(a, b, op) result(r)
       else
          r = a * b
       end if
-   case ('/')
+   case ("/")
       if (a_scalar) then
          sa = a(1,1); r = sa / b
       else if (b_scalar) then
@@ -230,7 +230,7 @@ subroutine show_matrix(a, tag)
    n = size(a, 2)
    write(*, '(a," = [",i0,"x",i0,"]")') trim(tag), m, n
    do i = 1, m
-      write(*, '(999(1x,g0.6))') (a(i,j), j = 1, n)
+      write(*, "(999(1x,g0.6))") (a(i,j), j = 1, n)
    end do
 end subroutine show_matrix
 
@@ -245,7 +245,7 @@ function get_var(name) result(v)
          return
       end if
    end do
-   stop 'undefined variable: '//trim(name)
+   stop "undefined variable: "//trim(name)
 end function get_var
 
 subroutine set_var(name, val)
@@ -260,7 +260,7 @@ subroutine set_var(name, val)
       end if
    end do
 
-   if (nvars == max_vars) stop 'symbol table full'
+   if (nvars == max_vars) stop "symbol table full"
    nvars = nvars + 1
    vars(nvars)%name = name
    call copy_matrix(val, vars(nvars)%val)
@@ -282,7 +282,7 @@ subroutine skip_ws(s, p)
 
    n = len_trim(s)
    do while (p <= n)
-      if (s(p:p) /= ' ') exit
+      if (s(p:p) /= " ") exit
       p = p + 1
    end do
 end subroutine skip_ws
@@ -293,7 +293,7 @@ function get_identifier(s, p) result(id)
    character(len=64) :: id
    integer :: q, n
    character(len=*), parameter :: ok = &
-        'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_'
+        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_"
 
    n = len_trim(s)
    q = p
@@ -321,7 +321,7 @@ function get_number(s, p) result(x)
    q = p
 
    do while (q <= n)
-      if (s(q:q) == ',' .or. s(q:q) == ')') exit
+      if (s(q:q) == "," .or. s(q:q) == ")") exit
       q = q + 1
    end do
 
