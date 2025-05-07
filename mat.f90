@@ -7,7 +7,7 @@ public :: eval_print
 integer, parameter :: max_vars = 100, len_name = 32
 
 type :: var_t
-   character(len=len_name) :: name = ''
+   character(len=len_name) :: name = ""
    real(kind=dp), allocatable :: val(:,:)
 end type var_t
 
@@ -23,16 +23,16 @@ subroutine eval_print(line)
    integer :: pos
 
    l = trim(adjustl(line))
-   if (l == '') return
+   if (l == "") return
 
    call split_assignment(l, lhs, rhs)
    pos = 1
    result = parse_expr(rhs, pos)
 
-   if (lhs /= '') call set_var(trim(lhs), result)
+   if (lhs /= "") call set_var(trim(lhs), result)
 
-   if (lhs == '') then
-      tag = 'ans'
+   if (lhs == "") then
+      tag = "ans"
    else
       tag = lhs
    end if
@@ -47,7 +47,7 @@ subroutine split_assignment(str, lhs, rhs)
 
    p = index(str, '=')
    if (p == 0) then
-      lhs = ''
+      lhs = ""
       rhs = str
    else
       lhs = trim(adjustl(str(:p-1)))
