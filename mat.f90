@@ -27,7 +27,7 @@ subroutine eval_print(line)
 
    call split_assignment(l, lhs, rhs)
    pos = 1
-   result = parse_expr(rhs, pos)
+   result = parse_expression(rhs, pos)
 
    if (lhs /= "") call set_variable(trim(lhs), result)
 
@@ -55,7 +55,7 @@ subroutine split_assignment(str, lhs, rhs)
    end if
 end subroutine split_assignment
 
-recursive function parse_expr(src, pos) result(mat)
+recursive function parse_expression(src, pos) result(mat)
    character(len=*), intent(in) :: src
    integer, intent(inout) :: pos
    real(kind=dp), allocatable :: mat(:,:)
@@ -80,7 +80,7 @@ recursive function parse_expr(src, pos) result(mat)
          exit
       end if
    end do
-end function parse_expr
+end function parse_expression
 
 recursive function parse_term(src, pos) result(mat)
    character(len=*), intent(in) :: src
@@ -126,7 +126,7 @@ recursive function parse_factor(src, pos) result(mat)
 
    if (src(pos:pos) == "(") then
       pos = pos + 1
-      mat = parse_expr(src, pos)
+      mat = parse_expression(src, pos)
       call expect_char(src, pos, ")")
       return
    end if
