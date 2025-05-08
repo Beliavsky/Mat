@@ -1,10 +1,11 @@
 module mat_mod
 use kind_mod, only: dp
+use mat_util_mod, only: show_matrix
 implicit none
 private
 public :: eval_print
 
-integer, parameter :: max_vars = 100, len_name = 32
+integer, parameter :: max_vars = 100, len_name = 32, max_row_print=10
 logical, save :: eval_error = .false.
 
 type :: var_t
@@ -19,7 +20,7 @@ contains
 
 subroutine report_error(msg)
    character(len=*), intent(in) :: msg
-   print *, 'Error: ', trim(msg)
+   print *, "Error: ", trim(msg)
    eval_error = .true.
 end subroutine report_error
 
@@ -31,13 +32,10 @@ subroutine eval_print(line)
    eval_error = .false.        ! clear any previous error
    l = trim(adjustl(line))
    if (l == "") return
-
    call split_assignment(l, lhs, rhs)
    pos = 1
    result = parse_expression(rhs, pos)
-
    if (lhs /= "") call set_variable(trim(lhs), result)
-
    if (lhs == "") then
       tag = "ans"
    else
@@ -240,25 +238,10 @@ function element_op(a, b, op) result(r)
    end select
 end function element_op
 
-subroutine show_matrix(a, tag)
-   real(kind=dp), intent(in) :: a(:,:)
-   character(len=*), intent(in) :: tag
-   integer :: i, m, n
-
-   m = size(a, 1)
-   n = size(a, 2)
-   write(*, '(a," = [",i0,"x",i0,"]")') trim(tag), m, n
-   do i = 1, m
-      write(*, "(*(1x,f8.3))") a(i,:)
-   end do
-   print*
-end subroutine show_matrix
-
 function get_variable(name) result(v)
    character(len=*), intent(in) :: name
    real(kind=dp), allocatable :: v(:,:)
    integer :: k
-
    do k = 1, n_vars
       if (vars(k)%name == name) then
          v = vars(k)%val
